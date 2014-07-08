@@ -11,62 +11,10 @@
 |
 */
 
-Route::get('/', function()
-{
-	return View::make("home.index");
-});
+Route::get('/', "HomeController@index");
 
-Route::post('/', function()
-{
-	$url=Input::get("url");
+Route::post('/', "HomeController@getShortenUrl");
 
-	$validation=Validator::make(
-		array(
-			'url'=>$url
-			),
-		array(
-			'url'=>'required|url'
-			)
-		);
-
-	if($validation->fails())
-	{
-		return Redirect::to('/')->withErrors($validation);
-	}
-
-	$existedUrl=Url::where('url','=',$url)->first();
-
-	if($existedUrl)
-	{
-		return View::make('home.result')->with('result',$existedUrl->shorten);
-	}
-
-	function getRandomCharacters()
-	{
-		$rand = substr(md5(microtime()),rand(0,26),5);
-
-		if(Url::where('shorten','=',$rand)->first())
-		{
-			return getRandomCharacters();
-		}
-
-		return $rand;
-	}
-
-	$theUrl=new Url;
-	$theUrl->url=$url;
-	$theUrl->shorten=getRandomCharacters();
-	$theUrl->save();
-
-	return View::make('home.result')->with('result',$theUrl->shorten);
-	
-
-});
-
-Route::get("{url}",function($url)
-{
-	$row=Url::where('shorten','=',$url)->first();
-	return Redirect::to($row->url);
-});
+Route::get("{url}","HomeController@getRedirect");
 
 

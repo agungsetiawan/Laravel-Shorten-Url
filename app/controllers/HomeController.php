@@ -2,22 +2,40 @@
 
 class HomeController extends BaseController {
 
-	/*
-	|--------------------------------------------------------------------------
-	| Default Home Controller
-	|--------------------------------------------------------------------------
-	|
-	| You may wish to use controllers instead of, or in addition to, Closure
-	| based routes. That's great! Here is an example controller method to
-	| get you started. To route to this controller, just add the route:
-	|
-	|	Route::get('/', 'HomeController@showWelcome');
-	|
-	*/
 
-	public function showWelcome()
+	public function index()
 	{
-		return View::make('hello');
+		return View::make("home.index");
+	}
+
+	public function getShortenUrl(){
+		$url=Input::get("url");
+
+		$validation=Url::validation(array('url'=>$url));
+		if($validation->fails())
+		{
+			return Redirect::to('/')->withErrors($validation);
+		}
+
+		$existedUrl=Url::where('url','=',$url)->first();
+
+		if($existedUrl)
+		{
+			return View::make('home.result')->with('result',$existedUrl->shorten);
+		}
+
+
+		$theUrl=new Url;
+		$theUrl->url=$url;
+		$theUrl->shorten=Url::getRandomCharacters();
+		$theUrl->save();
+
+		return View::make('home.result')->with('result',$theUrl->shorten);
+	}
+
+	public function getRedirect($url){
+		$row=Url::where('shorten','=',$url)->first();
+		return Redirect::to($row->url);
 	}
 
 }
